@@ -168,12 +168,12 @@ namespace WordGuess
             {
                 Console.WriteLine("Find below the words in case you want to delete");
                 string[] wordsArray = File.ReadAllLines(filePath);
-                string[] newWordsArray = new string[wordsArray.Length -1];
+                string[] newWordsArray = new string[wordsArray.Length];
 
 
                 foreach (string word in wordsArray)
                 {
-                    Console.WriteLine(word);
+                    Console.WriteLine(word + "\n");
                 }
 
                 Console.ReadLine();
@@ -195,7 +195,7 @@ namespace WordGuess
                     }
                     else
                      {
-                         newWordsArray[i] = wordsArray[i];
+                         newWordsArray[counter] = wordsArray[i];
                          counter++;
 
                      }
@@ -206,7 +206,7 @@ namespace WordGuess
                  for (int i = 0; i < newWordsArray.Length; i++)
                     {
 
-                        streamWriter.Write(newWordsArray[i]);
+                        streamWriter.Write(newWordsArray[i] +"\n");
                     }
 
                     }                
