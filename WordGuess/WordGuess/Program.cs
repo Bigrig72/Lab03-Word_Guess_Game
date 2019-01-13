@@ -3,8 +3,11 @@ using System.IO;
 
 namespace WordGuess
 {
-    class Program
+    public class Program
     {
+        private static readonly string _filePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\data\GameWords.txt";
+        private static readonly string _gameHeaderFilePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\data\GameHeader.txt";
+
         static void Main(string[] args)
         {
             CreateMyOwnWords();
@@ -14,35 +17,35 @@ namespace WordGuess
             {
                 displayMenu = MainMenu();
             }
-
-            //string[] linesArray = File.ReadAllLines(filePath);
-
-            //foreach (string name in linesArray)
-            //{
-            //    Console.WriteLine(name);
-            //}
-
-
         }
 
         private static bool MainMenu()
         {
             Console.Clear();
 
-            Console.WriteLine("Hello and welcome to the Word Guess Game");
-            Console.WriteLine("Please select from the menu how you wish to start");
-            Console.WriteLine("1) Choose To Create words");
-            Console.WriteLine("2) Choose To View The Words I Have Chosen");
-            Console.WriteLine("3) Choose To Add A Word");
-            Console.WriteLine("4) Choose To Delete A Word From The List");
-            Console.WriteLine("5) Choose To Exit App");
+            using (StreamReader streamReader = File.OpenText(_gameHeaderFilePath))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("");
+                Console.Write(streamReader.ReadToEnd());
+                Console.WriteLine("");
+            }
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("Hello & Welcome to the Word Guess Game");
+            Console.WriteLine("Please select from the menu how you wish to start:");
+            Console.WriteLine("1) Play Guessing Game");
+            Console.WriteLine("2) View The Words To Guess");
+            Console.WriteLine("3) Add A Word");
+            Console.WriteLine("4) Delete A Word");
+            Console.WriteLine("5) Exit");
 
             string result = Console.ReadLine();
 
 
             if (result == "1")
             {
-                //GuessingGame();
+                GuessingGame();
                 return true;
             }
             else if (result == "2")
@@ -52,12 +55,41 @@ namespace WordGuess
             }
             else if (result == "3")
             {
-                AddWord();
+                Console.WriteLine("Enter a word to add: ");
+
+                string addWord = Console.ReadLine();
+                bool success = AddWord(addWord, _filePath);
+                if (success)
+                {
+                    Console.WriteLine("You have successfully added a new word: {0}", addWord);
+                }
+                else
+                {
+                    Console.WriteLine("You were unsuccessful - either word existed already or an exception was thrown.");
+                }
+
                 return true;
             }
             else if (result == "4")
             {
-                DeleteWord();
+                Console.WriteLine("Find below the words in case you want to delete");
+                string[] wordsArray = File.ReadAllLines(_filePath);
+                foreach (string word in wordsArray)
+                {
+                    Console.WriteLine(word);
+                }
+
+                Console.WriteLine("Enter a word you wish to delete: ");
+                string deleteWord = Console.ReadLine().ToUpper();
+                bool success = DeleteWord(deleteWord);
+                if (success)
+                {
+                    Console.WriteLine("You have successfully deleted the word: {0}", deleteWord);
+                }
+                else
+                {
+                    Console.WriteLine("You were unsuccessful - either the word did not exist or there was an exception thrown.");
+                }
                 return true;
             }
             else if (result == "5")
@@ -69,87 +101,125 @@ namespace WordGuess
 
         }
 
-
-        public static void AddWord()
+        public static void GuessingGame()
         {
-            string filePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\TextFile1.txt";
+            Random random = new Random();
+            string[] wordsArray = File.ReadAllLines(_filePath);
 
-            try
+            int randomWordIndex = random.Next(wordsArray.Length);
+            string randomWordToGuess = wordsArray[randomWordIndex].ToUpper();
+
+            char[] wordBeingGuessed = new char[randomWordToGuess.Length];
+            for (int i = 0; i < wordBeingGuessed.Length; i++)
             {
-                
-                using (StreamWriter streamWriter = File.AppendText(filePath))
+                wordBeingGuessed[i] = '_';
+            }
 
+            Console.WriteLine("Guess a letter of your {0}-letter word: {1}", wordBeingGuessed.Length, string.Join(" ", wordBeingGuessed));
+
+            bool stillGuessingWord = true;
+
+            while (stillGuessingWord)
+            {
+                char guessedLetter = Console.ReadLine().ToUpper().Trim().ToCharArray()[0];
+
+                if (WordContainsLetter(randomWordToGuess, guessedLetter))
                 {
-                    try
+                    for (int i = 0; i < randomWordToGuess.Length; i++)
                     {
-                        Console.WriteLine("Enter a word to add");
-
-                        string addWord = Console.ReadLine();
-
-                        streamWriter.WriteLine(addWord);
+                        if (randomWordToGuess[i] == guessedLetter)
+                        {
+                            //replace underscore with guessed letter
+                            wordBeingGuessed[i] = guessedLetter;
+                        }
                     }
-                    catch (Exception ex)
+
+                    string wordBeingGuessedStr = new string(wordBeingGuessed);
+                    if (wordBeingGuessedStr.Contains('_'))
                     {
-                        Console.WriteLine("Exception thrown" + ex.Message);
-                        Console.ReadLine();
+                        Console.WriteLine("Correct! Guess another letter of your {0}-letter word: {1}", wordBeingGuessed.Length, string.Join(" ", wordBeingGuessed));
+                    }
+                    else
+                    {
+                        Console.WriteLine("You've guessed the whole word! {0}", string.Join(" ", wordBeingGuessed));
+                        stillGuessingWord = false;
                     }
                 }
 
+                else
+                {
+                    //letter does not exist in the word the player is guessing
+                    Console.WriteLine("The letter {0} does not exist in the word. Guess another letter of your {1}-letter word: {2}", guessedLetter, wordBeingGuessed.Length, string.Join(" ", wordBeingGuessed));
+                }
             }
-            catch (Exception ex)
+            Console.ReadKey();
+        }
+
+        public static bool WordContainsLetter(string word, char letter)
+        {
+            if (word.Contains(letter))
             {
-                Console.Write(ex.Message);
-                Console.ReadLine();
+                return true;
             }
+            return false;
         }
 
         public static void ViewWords()
         {
-            string filePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\TextFile1.txt";
-
-
             try
             {
-
-                string[] wordsArray = File.ReadAllLines(filePath);
-
-
+                string[] wordsArray = File.ReadAllLines(_filePath);
 
                 foreach (string word in wordsArray)
                 {
                     Console.WriteLine(word);
                 }
-
                 Console.ReadLine();
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Exception thrown" + ex.Message);
-
             }
-
-
         }
 
-
-
-
-        static void CreateMyOwnWords()
+        public static bool AddWord(string addWord, string filePath)
         {
-            string filePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\TextFile1.txt";
-
             try
             {
-                if (new FileInfo(filePath).Length == 0)
+                addWord = addWord.ToUpper();
+                string[] wordsArray = File.ReadAllLines(filePath);
+                string wordsArrayStr = string.Join(" ", wordsArray);
+                if (wordsArrayStr.Contains(addWord))
                 {
-                    using (StreamWriter streamWriter = File.AppendText(filePath))
+                    return false; //word already exists in file.
+                }
+
+                using (StreamWriter streamWriter = File.AppendText(filePath))
+                {
+                    streamWriter.WriteLine(addWord);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Write(ex.Message);
+                return false;
+            }
+        }
+
+        public static void CreateMyOwnWords()
+        {
+            try
+            {
+                if (new FileInfo(_filePath).Length == 0)
+                {
+                    using (StreamWriter streamWriter = File.CreateText(_filePath))
                     {
-                        streamWriter.WriteLine("Packers");
-                        streamWriter.WriteLine("Mountaineers");
-                        streamWriter.WriteLine("Indians");
-                        streamWriter.WriteLine("AppState");
-                        streamWriter.WriteLine("Selinsgrove");
+                        streamWriter.WriteLine("PACKERS");
+                        streamWriter.WriteLine("MOUNTAINEERS");
+                        streamWriter.WriteLine("INDIANS");
+                        streamWriter.WriteLine("APPALACHIAN");
+                        streamWriter.WriteLine("SELINSGROVE");
                     }
                 }
             }
@@ -160,62 +230,58 @@ namespace WordGuess
             }
         }
 
-        static void DeleteWord()
+        /// <summary>
+        /// Deletes a string from a text file.
+        /// </summary>
+        /// <param name="deleteWord">String to delete</param>
+        /// <returns>
+        /// True if the string successfully deleted from the file.
+        /// False if the string does not exist in the file or exception is caught.
+        /// </returns>
+        public static bool DeleteWord(string deleteWord)
         {
-            string filePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\TextFile1.txt";
-
+            deleteWord = deleteWord.ToUpper();
             try
             {
-                Console.WriteLine("Find below the words in case you want to delete");
-                string[] wordsArray = File.ReadAllLines(filePath);
+                string[] wordsArray = File.ReadAllLines(_filePath);
                 string[] newWordsArray = new string[wordsArray.Length];
 
-
-                foreach (string word in wordsArray)
+                bool deletedWordSuccessful = false;
+                using (StreamWriter streamWriter = File.CreateText(_filePath))
                 {
-                    Console.WriteLine(word + "\n");
-                }
-
-                Console.ReadLine();
-               
-                Console.WriteLine("enter a word you wish to delete");
-                string delete = Console.ReadLine();
-
-                using (StreamWriter streamWriter = new StreamWriter(filePath))
-                  {
-
-                int counter = 0;
-
-                for (int i = 0; i < wordsArray.Length; i++)
-                {
-                    if (delete == wordsArray[i])
+                    int counter = 0;
+                    for (int i = 0; i < wordsArray.Length; i++)
                     {
+                        if (deleteWord == wordsArray[i])
+                        {
+                            deletedWordSuccessful = true;
                             continue;
-                       
+                        }
+                        else
+                        {
+                            newWordsArray[counter] = wordsArray[i];
+                            counter++;
+                        }
                     }
-                    else
-                     {
-                         newWordsArray[counter] = wordsArray[i];
-                         counter++;
 
-                     }
-                  
-                  
-                }
-                
-                 for (int i = 0; i < newWordsArray.Length; i++)
+                    if (deletedWordSuccessful)
                     {
+                        for (int i = 0; i < newWordsArray.Length; i++)
+                        {
+                            streamWriter.WriteLine(newWordsArray[i]);
+                        }
 
-                        streamWriter.Write(newWordsArray[i] +"\n");
+                        return true;
                     }
+                }
 
-                    }                
-                
+                return false;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine("Error:" + e.Message);
+                Console.WriteLine("Error:" + ex.Message);
                 Console.ReadLine();
+                return false;
             }
         }
     }
