@@ -10,6 +10,7 @@ namespace WordGuess
 
         static void Main(string[] args)
         {
+            //Method being called in the beginning to set the user up with a set of words
             CreateMyOwnWords();
 
             bool displayMenu = true;
@@ -18,6 +19,10 @@ namespace WordGuess
                 displayMenu = MainMenu();
             }
         }
+        /// <summary>
+        /// MainMenu method where other external methods will be called. Menu options will be displayed until user exits the game.
+        /// </summary>
+        /// <returns></returns>
 
         private static bool MainMenu()
         {
@@ -81,7 +86,7 @@ namespace WordGuess
 
                 Console.WriteLine("Enter a word you wish to delete: ");
                 string deleteWord = Console.ReadLine().ToUpper();
-                bool success = DeleteWord(deleteWord);
+                bool success = DeleteWord(deleteWord, _filePath);
                 if (success)
                 {
                     Console.WriteLine("You have successfully deleted the word: {0}", deleteWord);
@@ -100,28 +105,31 @@ namespace WordGuess
             return true;
 
         }
-
+        /// <summary>
+        /// Method created to display underscore blanks until the user guesses a correct letter. Then the space will change with letter upon correctly guessing.
+        /// </summary>
         public static void GuessingGame()
         {
             Random random = new Random();
             string[] wordsArray = File.ReadAllLines(_filePath);
-
+            //getting random word from the wordsarray
             int randomWordIndex = random.Next(wordsArray.Length);
             string randomWordToGuess = wordsArray[randomWordIndex].ToUpper();
-
+            //Turning into a char array
             char[] wordBeingGuessed = new char[randomWordToGuess.Length];
             for (int i = 0; i < wordBeingGuessed.Length; i++)
             {
                 wordBeingGuessed[i] = '_';
             }
-
+            //Will output underscores at position i of the word
             Console.WriteLine("Guess a letter of your {0}-letter word: {1}", wordBeingGuessed.Length, string.Join(" ", wordBeingGuessed));
 
             bool stillGuessingWord = true;
-
+            //while will go until the word is gussed
             while (stillGuessingWord)
             {
                 char guessedLetter = Console.ReadLine().ToUpper().Trim().ToCharArray()[0];
+                //This will only read the first letter in case they type the alphabet in
 
                 if (WordContainsLetter(randomWordToGuess, guessedLetter))
                 {
@@ -133,12 +141,13 @@ namespace WordGuess
                             wordBeingGuessed[i] = guessedLetter;
                         }
                     }
-
+                    //if there is an underscore left keep guessing
                     string wordBeingGuessedStr = new string(wordBeingGuessed);
                     if (wordBeingGuessedStr.Contains('_'))
                     {
                         Console.WriteLine("Correct! Guess another letter of your {0}-letter word: {1}", wordBeingGuessed.Length, string.Join(" ", wordBeingGuessed));
                     }
+                    //you have guessed the whole word
                     else
                     {
                         Console.WriteLine("You've guessed the whole word! {0}", string.Join(" ", wordBeingGuessed));
@@ -154,7 +163,15 @@ namespace WordGuess
             }
             Console.ReadKey();
         }
-
+        /// <summary>
+        /// Will check to see if the letter the user guessed matches any letter in the word being played
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="letter"></param>
+        /// <returns>
+        /// True if the letter matches a letter inside of the word
+        /// Falsed if the letter does not exist in the word
+        /// </returns>
         public static bool WordContainsLetter(string word, char letter)
         {
             if (word.Contains(letter))
@@ -181,7 +198,15 @@ namespace WordGuess
                 Console.WriteLine("Exception thrown" + ex.Message);
             }
         }
-
+        /// <summary>
+        /// Will add a word to the word bank
+        /// </summary>
+        /// <param name="addWord"></param>
+        /// <param name="filePath"></param>
+        /// <returns>
+        /// True if the word does not exist and will write new word to filepath
+        /// False if the word already exists, will not allow the word to be added
+        /// </returns>
         public static bool AddWord(string addWord, string filePath)
         {
             try
@@ -206,6 +231,9 @@ namespace WordGuess
                 return false;
             }
         }
+        /// <summary>
+        /// Will create words upon program loading
+        /// </summary>
 
         public static void CreateMyOwnWords()
         {
@@ -233,21 +261,23 @@ namespace WordGuess
         /// <summary>
         /// Deletes a string from a text file.
         /// </summary>
-        /// <param name="deleteWord">String to delete</param>
+        /// <param name="deleteWord"></param>
+        /// <param name="filepath"></param>
         /// <returns>
         /// True if the string successfully deleted from the file.
         /// False if the string does not exist in the file or exception is caught.
         /// </returns>
-        public static bool DeleteWord(string deleteWord)
+      
+        public static bool DeleteWord(string deleteWord,string filepath)
         {
             deleteWord = deleteWord.ToUpper();
             try
             {
-                string[] wordsArray = File.ReadAllLines(_filePath);
+                string[] wordsArray = File.ReadAllLines(filepath);
                 string[] newWordsArray = new string[wordsArray.Length];
 
                 bool deletedWordSuccessful = false;
-                using (StreamWriter streamWriter = File.CreateText(_filePath))
+                using (StreamWriter streamWriter = File.CreateText(filepath))
                 {
                     int counter = 0;
                     for (int i = 0; i < wordsArray.Length; i++)

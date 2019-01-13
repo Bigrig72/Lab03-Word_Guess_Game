@@ -5,6 +5,7 @@ namespace WordGuessTDD
 {
     public class UnitTestDelete
     {
+        private static readonly string _filePath = @"C:\Code\Lab 03- Word Guess Game\Lab03-Word_Guess_Game\WordGuess\WordGuess\data\TestWords.txt";
         [Fact]
         public void DeleteWordSuccess()
         {
@@ -12,7 +13,7 @@ namespace WordGuessTDD
 
             //a word that is in the file will pass
             string testWord = "packers"; ;
-            Assert.True(Program.DeleteWord(testWord));
+            Assert.True(Program.DeleteWord(testWord, _filePath));
         }
 
         [Fact]
@@ -22,7 +23,7 @@ namespace WordGuessTDD
 
             //a word that is not in the file will fail
             string testWord = "pixi"; ;
-            Assert.False(Program.DeleteWord(testWord));
+            Assert.False(Program.DeleteWord(testWord, _filePath));
         }
     }
 }
